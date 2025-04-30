@@ -7,7 +7,11 @@ class LeituraBase(BaseModel):
     timestamp: Optional[datetime] = None
 
 class LeituraCreate(LeituraBase):
-    pass
+    valor: float
+    timestamp: Optional[datetime] = None
+
+class LeiturasInput(BaseModel):
+    leituras: List[LeituraCreate]
 
 class LeituraOut(LeituraBase):
     id: int

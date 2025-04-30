@@ -75,3 +75,24 @@ def get_leituras(sensor_id: int, start: Optional[datetime] = None, end: Optional
     
     leituras = query.all()
     return leituras
+
+@app.post("/sensores/{sensor_id}/leituras", response_model=List[schemas.LeituraOut])
+def add_leituras(sensor_id: int, dados: schemas.LeiturasInput, db: Session = Depends(get_db)):
+    sensor = db.query(models.Sensor).filter(models.Sensor.id == sensor_id).first()
+    if not sensor:
+        raise HTTPException(status_code=404, detail="Sensor não encontrado.")
+
+    novas_leituras = []
+
+    for leitura in dados.leituras:
+        nova = models.Leitura(
+            valor=leitura.valor,
+            timestamp=leitura.timestamp if leitura.timestamp else datetime.utcnow(),
+            sensor_id=sensor.id
+        )
+        db.add(nova)
+        novas_leituras.append(nova)
+
+    db.commit()
+
+    return novas_leituras
