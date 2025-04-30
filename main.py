@@ -96,3 +96,20 @@ def add_leituras(sensor_id: int, dados: schemas.LeiturasInput, db: Session = Dep
     db.commit()
 
     return novas_leituras
+
+@app.get("/leituras/{sensor_id}", response_model=List[schemas.LeituraOut])
+def get_leituras(
+    sensor_id: int,
+    start: Optional[datetime] = None,
+    end: Optional[datetime] = None,
+    db: Session = Depends(get_db)
+):
+    query = db.query(models.Leitura).filter(models.Leitura.sensor_id == sensor_id)
+
+    if start:
+        query = query.filter(models.Leitura.timestamp >= start)
+    if end:
+        query = query.filter(models.Leitura.timestamp <= end)
+
+    leituras = query.all()
+    return leituras
