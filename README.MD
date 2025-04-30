@@ -8,5 +8,7 @@ Redoc → http://127.0.0.1:8000/redoc
 Comandos:
 git init
 git add .
+git commit -m "Start de project!!"
+git push -u origin main
 
 pip freeze > requirements.txt

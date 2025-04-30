@@ -45,7 +45,7 @@ def create_sensor(sensor: schemas.SensorCreate, db: Session = Depends(get_db)):
     for leitura in sensor.leituras:
         new_leitura = models.Leitura(
             valor=leitura.valor,
-            timestamp=leitura.timestamp,
+            timestamp=leitura.timestamp if leitura.timestamp else datetime.utcnow(),
             sensor_id=new_sensor.id
         )
         db.add(new_leitura)

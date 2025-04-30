@@ -4,7 +4,7 @@ from datetime import datetime
 
 class LeituraBase(BaseModel):
     valor: float
-    timestamp: datetime
+    timestamp: Optional[datetime] = None
 
 class LeituraCreate(LeituraBase):
     pass
