@@ -35,7 +35,8 @@ def create_sensor(sensor: schemas.SensorCreate, db: Session = Depends(get_db)):
         tag=sensor.tag,
         tipo=sensor.tipo,
         range_lrv=sensor.range_lrv,
-        range_urv=sensor.range_urv
+        range_urv=sensor.range_urv,
+        unidade=sensor.unidade
     )
     db.add(new_sensor)
     db.commit()
@@ -83,15 +84,15 @@ def add_leituras(sensor_id: int, dados: schemas.LeiturasInput, db: Session = Dep
         raise HTTPException(status_code=404, detail="Sensor não encontrado.")
 
     novas_leituras = []
-
-    for leitura in dados.leituras:
-        nova = models.Leitura(
-            valor=leitura.valor,
-            timestamp=leitura.timestamp if leitura.timestamp else datetime.utcnow(),
-            sensor_id=sensor.id
-        )
-        db.add(nova)
-        novas_leituras.append(nova)
+    if sensor.leituras:
+        for leitura in sensor.leituras:
+            nova = models.Leitura(
+                valor=leitura.valor,
+                timestamp=leitura.timestamp if leitura.timestamp else datetime.utcnow(),
+                sensor_id=sensor.id
+            )
+            db.add(nova)
+            novas_leituras.append(nova)
 
     db.commit()
 

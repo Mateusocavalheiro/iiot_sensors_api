@@ -24,12 +24,25 @@ class SensorBase(BaseModel):
     tipo: str
     range_lrv: float
     range_urv: float
+    unidade: str
+    leituras: Optional[List[LeituraCreate]] = []
 
 class SensorCreate(SensorBase):
-    leituras: List[LeituraCreate]
+    tag: str
+    tipo: str
+    range_lrv: float
+    range_urv: float
+    unidade: str
+    leituras: List[LeituraCreate] = None
+    
 
 class SensorOut(SensorBase):
     id: int
+    tag: str
+    tipo: str
+    range_lrv: float
+    range_urv: float
+    unidade: str
     leituras: List[LeituraOut]
 
     class Config:
