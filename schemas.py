@@ -43,7 +43,7 @@ class SensorOut(SensorBase):
     range_lrv: float
     range_urv: float
     unidade: str
-    leituras: List[LeituraOut]
+    #leituras: List[LeituraOut]
 
     class Config:
         orm_mode = True
