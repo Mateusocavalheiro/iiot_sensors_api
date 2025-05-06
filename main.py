@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from fastapi.middleware.cors import CORSMiddleware
+from typing import List, Optional
+from datetime import datetime
 import models, schemas
 from database import SessionLocal, engine
-from fastapi.middleware.cors import CORSMiddleware
-from typing import List
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -26,7 +27,6 @@ def get_db():
 
 @app.post("/sensores/", response_model=schemas.SensorOut)
 def create_sensor(sensor: schemas.SensorCreate, db: Session = Depends(get_db)):
-    # Checar se já existe tag
     db_sensor = db.query(models.Sensor).filter(models.Sensor.tag == sensor.tag).first()
     if db_sensor:
         raise HTTPException(status_code=400, detail="Sensor com essa tag já existe.")
@@ -42,11 +42,10 @@ def create_sensor(sensor: schemas.SensorCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_sensor)
 
-    # Adicionar leituras
-    for leitura in sensor.leituras:
+    for leitura in sensor.leituras or []:
         new_leitura = models.Leitura(
             valor=leitura.valor,
-            timestamp=leitura.timestamp if leitura.timestamp else datetime.utcnow(),
+            timestamp=leitura.timestamp or datetime.utcnow(),
             sensor_id=new_sensor.id
         )
         db.add(new_leitura)
@@ -61,12 +60,13 @@ def list_sensores(db: Session = Depends(get_db)):
     sensores = db.query(models.Sensor).all()
     return sensores
 
-# Buscar todas as leituras de um sensor por intervalo de datas
-from typing import Optional
-from datetime import datetime
-
 @app.get("/leituras/{sensor_id}", response_model=List[schemas.LeituraOut])
-def get_leituras(sensor_id: int, start: Optional[datetime] = None, end: Optional[datetime] = None, db: Session = Depends(get_db)):
+def get_leituras(
+    sensor_id: int,
+    start: Optional[datetime] = None,
+    end: Optional[datetime] = None,
+    db: Session = Depends(get_db)
+):
     query = db.query(models.Leitura).filter(models.Leitura.sensor_id == sensor_id)
     
     if start:
@@ -74,8 +74,7 @@ def get_leituras(sensor_id: int, start: Optional[datetime] = None, end: Optional
     if end:
         query = query.filter(models.Leitura.timestamp <= end)
     
-    leituras = query.all()
-    return leituras
+    return query.all()
 
 @app.post("/sensores/{sensor_id}/leituras", response_model=List[schemas.LeituraOut])
 def add_leituras(sensor_id: int, dados: schemas.LeiturasInput, db: Session = Depends(get_db)):
@@ -83,17 +82,18 @@ def add_leituras(sensor_id: int, dados: schemas.LeiturasInput, db: Session = Dep
     if not sensor:
         raise HTTPException(status_code=404, detail="Sensor não encontrado.")
 
+    if len(dados.leituras) > 100:
+        raise HTTPException(status_code=413, detail="Máximo de 100 leituras por requisição.")
+
     novas_leituras = []
-    if sensor.leituras:
-        for leitura in sensor.leituras:
-            nova = models.Leitura(
-                valor=leitura.valor,
-                timestamp=leitura.timestamp if leitura.timestamp else datetime.utcnow(),
-                sensor_id=sensor.id
-            )
-            db.add(nova)
-            novas_leituras.append(nova)
+    for leitura in dados.leituras:
+        nova = models.Leitura(
+            valor=leitura.valor,
+            timestamp=leitura.timestamp or datetime.utcnow(),
+            sensor_id=sensor.id
+        )
+        db.add(nova)
+        novas_leituras.append(nova)
 
     db.commit()
-
     return novas_leituras
