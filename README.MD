@@ -10,5 +10,9 @@ git init
 git add .
 git commit -m "Start de project!!"
 git push -u origin main
-
+git checkout -b develop
+git push --set-upstream origin develop
+git checkout main
+git checkoout develop
+git 
 pip freeze > requirements.txt

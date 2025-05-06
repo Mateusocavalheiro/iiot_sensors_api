@@ -11,6 +11,7 @@ class Sensor(Base):
     tipo = Column(String)
     range_lrv = Column(Float)
     range_urv = Column(Float)
+    unidade = Column(String)
 
     leituras = relationship("Leitura", back_populates="sensor", cascade="all, delete")
 
