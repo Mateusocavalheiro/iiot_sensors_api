@@ -1,8 +1,14 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "postgresql://iiot_data_base_user:2RHRLL1F782N3v37qbmW7dBFsagE94Nd@dpg-d0cduv6uk2gs73f787n0-a/iiot_data_base"
+# Banco de dados SQLite
+SQLALCHEMY_DATABASE_URL = "sqlite:///./sensores.db"
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 Base = declarative_base()
